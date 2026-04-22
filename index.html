@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="Ping Utility – Python утиліта пінгування у стилі Cisco Packet Tracer. Організація комп'ютерних мереж, Нагорний Ілля, РПЗ-24Б."/>
-  <title>Ping Utility | Організація комп. мереж – Нагорний Ілля</title>
+  <meta name="description" content="Ping Utility & Anti-Sniffer – Python утиліти для мережевого адміністрування. Організація комп'ютерних мереж, Нагорний Ілля, РПЗ-24Б."/>
+  <title>Network Tools | Організація комп. мереж – Нагорний Ілля</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -178,6 +178,7 @@
   <div class="ver-tab"        data-ver="v2">v2 — Сканування мережі<span class="vtag">ДЗ №2</span></div>
   <div class="ver-tab"        data-ver="v3">v3 — Збереження результатів<span class="vtag">ДЗ №3</span></div>
   <div class="ver-tab"        data-ver="v4">v4 — Фільтрація трафіку<span class="vtag">ДЗ №4</span></div>
+  <div class="ver-tab"        data-ver="v5">v5 — Анти-сніфер<span class="vtag">ДЗ №5</span></div>
 </div>
 
 <nav class="sec-nav" id="secNav">
@@ -185,6 +186,7 @@
   <a href="#libraries">Бібліотеки</a>
   <a href="#cli">CLI</a>
   <a href="#gui">GUI</a>
+  <a href="#terms">Терміни</a>
   <a href="#download">Файли</a>
 </nav>
 
@@ -804,8 +806,188 @@ Cisco Packet Tracer PC Command Line 1.0
 ├── <span class="fo">ДЗ_4_Pingv4/</span>
 │   ├── <span class="py">ping_cli.py</span>          <span class="dc">– консольна утиліта v4 (+ filter)</span>
 │   └── <span class="py">ping_gui.py</span>          <span class="dc">– графічна утиліта v4 (чекбокси протоколів)</span>
+├── <span class="fo">ДЗ_5_AntiSniffer/</span>
+│   ├── <span class="py">anti_sniffer_cli.py</span>  <span class="dc">– CLI анти-сніфер v5</span>
+│   └── <span class="py">anti_sniffer_gui.py</span>  <span class="dc">– GUI анти-сніфер v5 (tkinter)</span>
 └── <span class="fo">site/</span>
-    └── <span class="ht">index.html</span>           <span class="dc">– цей сайт (всі 4 роботи)</span></div>
+    └── <span class="ht">index.html</span>           <span class="dc">– цей сайт (всі 5 робіт)</span></div>
+  </section>
+
+</main>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     V5 — Anti-Sniffer
+════════════════════════════════════════ -->
+<div class="ver-panel" id="panel-v5">
+<main>
+
+  <section id="about">
+    <h2>Про програму</h2>
+    <p>Версія <strong>v5</strong> — повністю нова система <strong>«Анти-сніфер»</strong> для IBS.
+      Сканує вхідний та вихідний трафік у реальному часі та виявляє підозрілу активність:
+      сканування портів, масові запити (DDoS), підключення з невідомих IP-адрес.</p>
+
+    <h3>Що нового</h3>
+    <div class="compare">
+      <div class="cbox"><h4>v4</h4><ul>
+        <li>Фільтрація трафіку</li>
+        <li>Перевірка TCP-портів</li>
+        <li>Чекбокси протоколів</li>
+      </ul></div>
+      <div class="cbox"><h4 class="new">v5 — новинка</h4><ul>
+        <li>Raw-сокет захоплення пакетів</li>
+        <li>Виявлення порт-сканів</li>
+        <li>Виявлення DDoS-паттернів</li>
+        <li>Білий список IP/CIDR</li>
+        <li>Сповіщення у реальному часі</li>
+        <li>Логування у файл</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section id="libraries">
+    <h2>Використані бібліотеки</h2>
+    <p>Усі бібліотеки є стандартними – pip не потрібен.</p>
+    <div class="cards">
+      <div class="card"><h4>socket</h4><p>Raw-сокет для захоплення пакетів. Promiscuous mode через <code>SIO_RCVALL</code>.</p></div>
+      <div class="card"><h4>struct</h4><p>Розбір бінарних заголовків IP, TCP, UDP пакетів.</p></div>
+      <div class="card"><h4>threading</h4><p>Паралельне захоплення та оновлення UI без блокування.</p></div>
+      <div class="card"><h4>ipaddress</h4><p>Парсинг CIDR, перевірка належності IP до білого списку.</p></div>
+      <div class="card"><h4>collections</h4><p><code>defaultdict</code> для трекерів порт-сканів та масових запитів.</p></div>
+      <div class="card"><h4>tkinter</h4><p>GUI: дашборд, монітор трафіку, журнал сповіщень, налаштування.</p></div>
+      <div class="card"><h4>datetime</h4><p>Мітки часу для сповіщень та логів.</p></div>
+      <div class="card"><h4>time</h4><p>Вікна часу для виявлення аномалій (ковзне вікно).</p></div>
+    </div>
+  </section>
+
+  <section id="cli">
+    <h2>CLI-версія (anti_sniffer_cli.py)</h2>
+    <p>Консольна версія з ANSI-кольорами. Захоплює пакети через raw-сокет та аналізує у реальному часі.</p>
+
+    <div class="terminal">
+      <div class="t-bar"><span class="t-title">Administrator: PowerShell</span>
+        <div class="t-ctrl"><span>─</span><span>□</span><span class="tc-x">✕</span></div></div>
+      <pre>
+<span class="cmd">PS&gt; python anti_sniffer_cli.py --log alerts.log</span>
+
+<span class="stat">═══════════════════════════════════════════════════</span>
+  <span class="stat">Anti-Sniffer v5 — Система виявлення загроз</span>
+<span class="stat">═══════════════════════════════════════════════════</span>
+
+  Інтерфейс:    192.168.1.100
+  Білий список:  192.168.1.0/24, 127.0.0.0/8
+  Порт-скан:     &gt;10 портів за 5с
+  Масові запити:  &gt;50 пакетів за 3с
+
+  <span class="ok">▶ Моніторинг запущено...</span>  (Ctrl+C — зупинити)
+
+<span class="ok">12:04:31 → TCP  192.168.1.100:49832 → 8.8.8.8:443   (HTTPS) [S,A]</span>
+<span class="stat">12:04:31 ← UDP  8.8.8.8:53    → 192.168.1.100:51204 (DNS)</span>
+<span class="ok">12:04:32 → TCP  192.168.1.100:49833 → 142.250.74.14:80 (HTTP) [S]</span>
+
+ <span class="down">⚠ УВАГА  Підключення з невідомого IP</span>
+   IP: 45.33.32.156
+   IP не належить до білого списку
+
+<span class="down">12:04:35 ← TCP  45.33.32.156:12345 → 192.168.1.100:22   (SSH) [S]</span>
+<span class="down">12:04:35 ← TCP  45.33.32.156:12346 → 192.168.1.100:80   (HTTP) [S]</span>
+<span class="down">12:04:35 ← TCP  45.33.32.156:12347 → 192.168.1.100:443  (HTTPS) [S]</span>
+<span class="down">12:04:35 ← TCP  45.33.32.156:12348 → 192.168.1.100:3389 (RDP) [S]</span>
+
+ <span class="down">‼ КРИТИЧНО  Виявлено сканування портів!</span>
+   IP: 45.33.32.156
+   Портів за 5с: 12 → 22, 80, 443, 445, 3306, 3389, ...
+      </pre>
+    </div>
+
+    <h3>Підтримувані параметри</h3>
+    <table><thead><tr><th>Параметр</th><th>Приклад</th><th>Опис</th></tr></thead><tbody>
+      <tr><td><code>--iface, -i</code></td><td><code>-i 192.168.1.100</code></td><td>IP інтерфейсу для захоплення</td></tr>
+      <tr><td><code>--whitelist, -w</code></td><td><code>-w 10.0.0.0/8,192.168.0.0/16</code></td><td>Білий список CIDR</td></tr>
+      <tr><td><code>--log, -l</code></td><td><code>-l alerts.log</code></td><td>Файл для запису сповіщень</td></tr>
+      <tr><td><code>--ps-threshold</code></td><td><code>--ps-threshold 15</code></td><td>Поріг портів для порт-скану</td></tr>
+      <tr><td><code>--mr-threshold</code></td><td><code>--mr-threshold 100</code></td><td>Поріг пакетів для DDoS</td></tr>
+      <tr><td><code>--quiet, -q</code></td><td><code>-q</code></td><td>Не виводити кожен пакет</td></tr>
+    </tbody></table>
+
+    <h3>Скриншоти CLI</h3>
+    <p>Сповіщення про підозрілу активність:</p>
+    <img class="screenshot" src="v5_cli_alert.png" alt="CLI v5 – сповіщення про підозрілу активність"/>
+    <p>Підсумок моніторингу:</p>
+    <img class="screenshot" src="v5_cli_end.png" alt="CLI v5 – підсумок моніторингу"/>
+  </section>
+
+  <section id="gui">
+    <h2>GUI-версія (anti_sniffer_gui.py)</h2>
+    <p>Три вкладки: <strong>📡 Моніторинг</strong>, <strong>⚠ Сповіщення</strong>, <strong>⚙ Налаштування</strong>.</p>
+    <div class="cards">
+      <div class="card"><h4>Дашборд</h4><p>6 карток: Пакетів, TCP, UDP, ICMP, Унік. IP, Сповіщень — оновлюються щосекунди.</p></div>
+      <div class="card"><h4>Монітор трафіку</h4><p>Кольоровий лог пакетів у реальному часі з протоколом та портами.</p></div>
+      <div class="card"><h4>Журнал сповіщень</h4><p>Критичні та попереджувальні алерти з кнопками збереження та очищення.</p></div>
+      <div class="card"><h4>Налаштування</h4><p>Пороги виявлення, вікна часу, білий список CIDR — все налаштовується.</p></div>
+    </div>
+
+    <h3>Скриншоти GUI</h3>
+    <p>Вкладка «Моніторинг» — дашборд та трафік у реальному часі:</p>
+    <img class="screenshot" src="v5_gui_monitor.png" alt="GUI v5 – вкладка моніторинг"/>
+    <p>Вкладка «Сповіщення» — журнал алертів:</p>
+    <img class="screenshot" src="v5_gui_alerts.png" alt="GUI v5 – вкладка сповіщення"/>
+    <p>Вкладка «Налаштування» — пороги та білий список:</p>
+    <img class="screenshot" src="v5_gui_settings.png" alt="GUI v5 – вкладка налаштування"/>
+  </section>
+
+  <section id="terms">
+    <h2>Термінологічний словник</h2>
+    <table><thead><tr><th>Термін</th><th>Визначення</th></tr></thead><tbody>
+      <tr><td><strong>Сніфер (Sniffer)</strong></td>
+        <td>Програма або пристрій, що перехоплює мережевий трафік.
+          Використовується як для діагностики, так і для зловмисних цілей.</td></tr>
+      <tr><td><strong>Raw-сокет</strong></td>
+        <td>Сокет, що дозволяє отримувати «сирі» IP-пакети без обробки транспортним рівнем.
+          На Windows потрібен <code>SIO_RCVALL</code> для promiscuous mode.</td></tr>
+      <tr><td><strong>Promiscuous Mode</strong></td>
+        <td>Режим мережевого інтерфейсу, при якому він приймає всі пакети,
+          а не лише адресовані йому. Необхідний для аналізу трафіку.</td></tr>
+      <tr><td><strong>Сканування портів</strong></td>
+        <td>Техніка, при якій атакуючий послідовно перевіряє порти хоста на відкритість.
+          Ознака: багато SYN-запитів на різні порти з одного IP за короткий час.</td></tr>
+      <tr><td><strong>DDoS-атака</strong></td>
+        <td>Distributed Denial of Service — масове відправлення запитів з метою
+          перевантажити сервер. Ознака: аномально велика кількість пакетів.</td></tr>
+      <tr><td><strong>Білий список (Whitelist)</strong></td>
+        <td>Список довірених IP-адрес або мереж (CIDR), підключення від яких
+          вважаються безпечними і не генерують сповіщення.</td></tr>
+      <tr><td><strong>SYN-флаг</strong></td>
+        <td>Прапор TCP-пакету, що ініціює з'єднання. SYN без ACK —
+          типова ознака сканування портів (SYN-scan).</td></tr>
+      <tr><td><strong>IDS / IPS</strong></td>
+        <td>Intrusion Detection / Prevention System — системи виявлення та
+          запобігання вторгненням. Anti-Sniffer є спрощеним прикладом IDS.</td></tr>
+    </tbody></table>
+  </section>
+
+  <section id="download">
+    <h2>Файли для завантаження</h2>
+    <div class="dl-grid">
+      <div class="dl-card">
+        <div class="dl-icon">🖥️</div>
+        <div class="dl-info">
+          <strong>anti_sniffer_cli.py</strong>
+          <small>Консольна версія (CLI) · Python · v5</small>
+        </div>
+        <a class="dl-btn" href="anti_sniffer_cli_v5.py" download="anti_sniffer_cli_v5.py">⬇ CLI</a>
+      </div>
+      <div class="dl-card">
+        <div class="dl-icon">🖼️</div>
+        <div class="dl-info">
+          <strong>anti_sniffer_gui.py</strong>
+          <small>Графічна версія (GUI) · Python · v5</small>
+        </div>
+        <a class="dl-btn" href="anti_sniffer_gui_v5.py" download="anti_sniffer_gui_v5.py">⬇ GUI</a>
+      </div>
+    </div>
   </section>
 
 </main>
@@ -813,7 +995,7 @@ Cisco Packet Tracer PC Command Line 1.0
 
 
 <footer>
-  Нагорний Ілля &nbsp;·&nbsp; РПЗ-24Б &nbsp;·&nbsp; Організація комп. мереж &nbsp;·&nbsp; Ping Utility v1–v4
+  Нагорний Ілля &nbsp;·&nbsp; РПЗ-24Б &nbsp;·&nbsp; Організація комп. мереж &nbsp;·&nbsp; Ping Utility v1–v4 + Anti-Sniffer v5
 </footer>
 
 <script>
